@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lulu Philippines — Admin Console (GitHub Ready)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            600: '#dc2626',
+                            700: '#b91c1c'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 h-screen flex overflow-hidden">
+
+    <!-- Sidebar Navigation -->
+    <aside id="sidebar" class="w-64 bg-white border-r border-slate-200 flex flex-col justify-between z-25 transition-all duration-300">
+        <div>
+            <!-- Brand Header -->
+            <div class="h-16 flex items-center px-6 border-b border-slate-100 gap-3">
+                <div class="w-9 h-9 rounded-lg bg-red-600 flex items-center justify-center text-white font-bold shadow-md">
+                    L
+                </div>
+                <div>
+                    <h1 class="font-bold text-sm tracking-wide text-slate-900">Lulu Philippines</h1>
+                    <span class="text-[10px] text-slate-500 font-semibold tracking-wider uppercase">Admin Portal</span>
+                </div>
+            </div>
+
+            <!-- Navigation Links -->
+            <nav class="p-4 space-y-1">
+                <button onclick="switchView('members')" id="nav-members" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition-all bg-slate-100 text-slate-900 font-semibold">
+                    <i data-lucide="users" class="w-4 h-4 text-red-600"></i>
+                    <span>Members</span>
+                </button>
+                <button onclick="switchView('deposit')" id="nav-deposit" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition-all text-slate-600 hover:bg-slate-50 hover:text-slate-900">
+                    <i data-lucide="arrow-down-left" class="w-4 h-4"></i>
+                    <span>Deposit</span>
+                </button>
+                <button onclick="switchView('withdrawal')" id="nav-withdrawal" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition-all text-slate-600 hover:bg-slate-50 hover:text-slate-900">
+                    <i data-lucide="arrow-up-right" class="w-4 h-4"></i>
+                    <span>Withdrawal</span>
+                </button>
+                <button onclick="switchView('logs')" id="nav-logs" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition-all text-slate-600 hover:bg-slate-50 hover:text-slate-900">
+                    <i data-lucide="file-text" class="w-4 h-4"></i>
+                    <span>Transaction logs</span>
+                </button>
+            </nav>
+        </div>
+
+        <!-- Admin Profile Footer -->
+        <div class="p-4 border-t border-slate-100 flex items-center justify-between">
+            <div class="flex items-center gap-3 p-2 rounded-lg bg-slate-50 border border-slate-200/60 flex-1 overflow-hidden">
+                <div class="w-8 h-8 rounded-full bg-red-100 text-red-700 flex items-center justify-center font-bold text-xs shrink-0">AR</div>
+                <div class="overflow-hidden">
+                    <h4 class="text-xs font-semibold text-slate-900 truncate">Admin User</h4>
+                    <p class="text-[10px] text-slate-500 truncate">PH Operations</p>
+                </div>
+            </div>
+            <button onclick="openApiKeyModal()" class="ml-2 p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors" title="GitHub AI Settings">
+                <i data-lucide="settings" class="w-4 h-4"></i>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 flex flex-col overflow-hidden bg-slate-50">
+        <!-- Top Navbar -->
+        <header class="h-16 bg-white border-b border-slate-200 px-8 flex items-center justify-between z-10">
+            <div class="flex items-center gap-4">
+                <div class="flex items-center gap-2 text-xs font-medium text-slate-500">
+                    <span>Admin</span>
+                    <span>/</span>
+                    <span id="breadcrumb-current" class="font-semibold text-slate-900 uppercase">Members</span>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <div class="relative">
+                    <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+                    <input type="text" id="table-search" oninput="filterMembers(this.value)" placeholder="Search members..." class="bg-slate-50 border border-slate-200 rounded-lg pl-9 pr-4 py-1.5 text-xs text-slate-800 focus:outline-none focus:border-red-600 w-56">
+                </div>
+                <button onclick="toggleAiAssistant()" class="flex items-center gap-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white px-3.5 py-1.5 rounded-lg text-xs font-semibold shadow-xs transition-all">
+                    <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+                    <span>Lulu AI Assistant</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- View Container -->
+        <div id="view-container" class="flex-1 overflow-y-auto p-8">
+            <!-- Dynamic View Content -->
+        </div>
+    </main>
+
+    <!-- Modal Overlay -->
+    <div id="modal-overlay" class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
+        <div id="modal-content" class="bg-white border border-slate-200 w-full max-w-lg rounded-xl shadow-2xl overflow-hidden">
+            <!-- Modal Content -->
+        </div>
+    </div>
+
+    <!-- GitHub API Key Configuration Modal -->
+    <div id="apikey-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white border border-slate-200 w-full max-w-md rounded-xl shadow-2xl p-6 space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 class="font-bold text-slate-900 text-sm flex items-center gap-2">
+                    <i data-lucide="key" class="w-4 h-4 text-red-600"></i>
+                    <span>GitHub / Static Hosting AI Setup</span>
+                </h3>
+                <button onclick="closeApiKeyModal()" class="text-slate-400 hover:text-slate-700">✕</button>
+            </div>
+            <p class="text-xs text-slate-600">
+                When publishing this dashboard to GitHub Pages, the Gemini API key needs to be configured. Enter your Google Gemini API key below. It is stored securely in your browser's local storage.
+            </p>
+            <div class="space-y-1">
+                <label class="text-[10px] font-bold text-slate-500 uppercase">Gemini API Key</label>
+                <input type="password" id="api-key-input" placeholder="AIzaSy..." class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs font-mono focus:outline-none focus:border-red-600">
+            </div>
+            <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+                <button onclick="closeApiKeyModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3.5 py-2 rounded-lg text-xs font-medium">Cancel</button>
+                <button onclick="saveApiKey()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-xs font-semibold">Save API Key</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Assistant Drawer -->
+    <div id="ai-drawer" class="fixed inset-y-0 right-0 w-96 bg-white border-l border-slate-200 shadow-2xl z-50 transform translate-x-full transition-transform duration-300 flex flex-col">
+        <div class="h-16 px-6 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+            <div class="flex items-center gap-2">
+                <div class="w-7 h-7 rounded-lg bg-red-100 text-red-600 flex items-center justify-center font-bold">
+                    <i data-lucide="sparkles" class="w-4 h-4"></i>
+                </div>
+                <h3 class="font-bold text-slate-900 text-sm">Lulu AI Operations Copilot</h3>
+            </div>
+            <button onclick="toggleAiAssistant()" class="text-slate-400 hover:text-slate-700">✕</button>
+        </div>
+        <div id="ai-chat-messages" class="flex-1 overflow-y-auto p-4 space-y-4 text-xs bg-slate-50/50">
+            <div class="bg-white border border-slate-200 rounded-lg p-3 shadow-2xs">
+                <p class="font-semibold text-slate-900 mb-1">Hello Admin!</p>
+                <p class="text-slate-600">I am your Gemini-powered assistant for Lulu Philippines. Ask me to analyze member accounts, audit pending deposits, or check security risks like blocked IP addresses.</p>
+            </div>
+        </div>
+        <div class="p-4 border-t border-slate-200 bg-white">
+            <div class="flex gap-2">
+                <input type="text" id="ai-prompt-input" onkeydown="if(event.key==='Enter') sendAiPrompt()" placeholder="Ask AI (e.g. Analyze member risk)..." class="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-red-600">
+                <button onclick="sendAiPrompt()" class="bg-red-600 hover:bg-red-700 text-white px-3.5 py-2 rounded-lg text-xs font-semibold">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2"></div>
+
+    <script>
+        // --- APPLICATION STATE ---
+        const state = {
+            currentView: 'members',
+            members: [
+                { name: 'Angel Rivera', email: 'angelriverajr@gmail.com', role: 'MEMBER', status: 'ACTIVE', joined: '9/15/2026', ip: '112.201.44.12' },
+                { name: 'CAROL C PANIS', email: 'paniscarol78@gmail.com', role: 'MEMBER', status: 'ACTIVE', joined: '9/12/2026', ip: '49.145.22.90' },
+                { name: 'lotteria phils', email: 'officialloteriacorp@gmail.com', role: 'MEMBER', status: 'ACTIVE', joined: '9/11/2026', ip: '121.54.12.88' },
+                { name: 'Catherine F. Limos', email: 'cathy.limos29@gmail.com', role: 'MEMBER', status: 'ACTIVE', joined: '9/11/2026', ip: '110.54.180.12' },
+                { name: 'Loriella Concepcion', email: 'llyleconcepcion66@gmail.com', role: 'MEMBER', status: 'ACTIVE', joined: '9/11/2026', ip: '136.158.9.44' },
+                { name: 'Jose Abigan Abenir', email: 'jabenir@yahoo.com', role: 'MEMBER', status: 'ACTIVE', joined: '9/11/2026', ip: '180.191.116.5' }
+            ],
+            deposits: [
+                { id: 'DEP-1021', name: 'Angel Rivera', amount: '₱15,000.00', method: 'GCash', status: 'Pending', date: '9/15/2026' },
+                { id: 'DEP-1020', name: 'CAROL C PANIS', amount: '₱5,000.00', method: 'BDO Online', status: 'Approved', date: '9/12/2026' }
+            ],
+            withdrawals: [
+                { id: 'WDR-501', name: 'lotteria phils', amount: '₱50,000.00', method: 'Maya', status: 'Processing', date: '9/14/2026' }
+            ],
+            logs: [
+                { id: 'LOG-991', admin: 'Admin User', action: 'Approved member deposit DEP-1020', time: '9/12/2026 14:20' }
+            ]
+        };
+
+        let filterQuery = '';
+
+        // --- TOAST NOTIFICATION ---
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `flex items-center gap-2 px-4 py-3 rounded-lg text-xs font-semibold shadow-lg transition-all transform translate-y-2 opacity-0 ${
+                type === 'error' ? 'bg-red-600 text-white' : 'bg-slate-900 text-white'
+            }`;
+            toast.innerHTML = `<i data-lucide="${type === 'error' ? 'shield-alert' : 'check-circle'}" class="w-4 h-4"></i><span>${message}</span>`;
+            container.appendChild(toast);
+            lucide.createIcons();
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('translate-y-2', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // --- API KEY MODAL HANDLERS ---
+        function openApiKeyModal() {
+            const savedKey = localStorage.getItem('gemini_api_key') || '';
+            document.getElementById('api-key-input').value = savedKey;
+            document.getElementById('apikey-modal').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function closeApiKeyModal() {
+            document.getElementById('apikey-modal').classList.add('hidden');
+        }
+
+        function saveApiKey() {
+            const key = document.getElementById('api-key-input').value.trim();
+            if (!key) {
+                showToast('Please enter a valid Gemini API key', 'error');
+                return;
+            }
+            localStorage.setItem('gemini_api_key', key);
+            closeApiKeyModal();
+            showToast('Gemini API key saved successfully for GitHub hosting!', 'success');
+        }
+
+        // --- GEMINI API INTEGRATION ---
+        async function callGeminiAPI(promptText, retries = 3, delay = 1000) {
+            // Priority: 1. localStorage (for GitHub), 2. Runtime injected env
+            const apiKey = localStorage.getItem('gemini_api_key') || '';
+            if (!apiKey) {
+                openApiKeyModal();
+                return "⚠️ Gemini API key not configured. Please click the settings icon at the bottom left of your sidebar to enter your API key for GitHub deployment.";
+            }
+
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+            const payload = {
+                contents: [{ parts: [{ text: promptText }] }],
+                systemInstruction: {
+                    parts: [{ text: "You are an expert AI operations analyst for Lulu Philippines admin console. Provide concise, professional, accurate insights based on user data." }]
+                }
+            };
+
+            for (let i = 0; i < retries; i++) {
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    const result = await response.json();
+                    const candidate = result.candidates?.[0];
+                    if (candidate && candidate.content?.parts?.[0]?.text) {
+                        return candidate.content.parts[0].text;
+                    }
+                    throw new Error("Invalid response structure");
+                } catch (error) {
+                    if (i === retries - 1) return "Unable to complete AI analysis at this moment. Please verify your Gemini API key in settings.";
+                    await new Promise(res => setTimeout(res, delay * Math.pow(2, i)));
+                }
+            }
+        }
+
+        function toggleAiAssistant() {
+            const drawer = document.getElementById('ai-drawer');
+            drawer.classList.toggle('translate-x-full');
+            lucide.createIcons();
+        }
+
+        async function sendAiPrompt() {
+            const input = document.getElementById('ai-prompt-input');
+            const prompt = input.value.trim();
+            if (!prompt) return;
+
+            const chatContainer = document.getElementById('ai-chat-messages');
+            chatContainer.innerHTML += `
+                <div class="bg-red-50 border border-red-100 rounded-lg p-3 ml-6 text-slate-800">
+                    <p class="font-semibold text-red-700 mb-0.5">You</p>
+                    <p>${prompt}</p>
+                </div>
+            `;
+            input.value = '';
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+
+            const loadingId = 'ai-loading-' + Date.now();
+            chatContainer.innerHTML += `
+                <div id="${loadingId}" class="bg-white border border-slate-200 rounded-lg p-3 mr-6 text-slate-500 animate-pulse">
+                    Analyzing with Gemini API...
+                </div>
+            `;
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+
+            const contextData = `Members: ${JSON.stringify(state.members)}. Deposits: ${JSON.stringify(state.deposits)}`;
+            const fullPrompt = `Context: ${contextData}\n\nUser Request: ${prompt}`;
+            const aiResponse = await callGeminiAPI(fullPrompt);
+
+            document.getElementById(loadingId).remove();
+            chatContainer.innerHTML += `
+                <div class="bg-white border border-slate-200 rounded-lg p-3 mr-6 text-slate-800 shadow-2xs">
+                    <p class="font-semibold text-slate-900 mb-0.5 flex items-center gap-1.5"><i data-lucide="sparkles" class="w-3.5 h-3.5 text-red-600"></i> Lulu AI Copilot</p>
+                    <p class="whitespace-pre-line">${aiResponse}</p>
+                </div>
+            `;
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            lucide.createIcons();
+        }
+
+        // --- NAVIGATION ROUTER ---
+        function switchView(viewName) {
+            state.currentView = viewName;
+            
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.className = 'nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition-all text-slate-600 hover:bg-slate-50 hover:text-slate-900';
+            });
+            const activeBtn = document.getElementById(`nav-${viewName}`);
+            if (activeBtn) {
+                activeBtn.className = 'nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition-all bg-slate-100 text-slate-900 font-semibold';
+            }
+
+            document.getElementById('breadcrumb-current').innerText = viewName;
+            renderView();
+            lucide.createIcons();
+        }
+
+        // --- RENDER VIEWS ---
+        function renderView() {
+            const container = document.getElementById('view-container');
+            if (state.currentView === 'members') {
+                const filtered = state.members.filter(m => 
+                    m.name.toLowerCase().includes(filterQuery.toLowerCase()) || 
+                    m.email.toLowerCase().includes(filterQuery.toLowerCase())
+                );
+
+                container.innerHTML = `
+                    <div class="bg-white border border-slate-200 rounded-xl shadow-xs overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="border-b border-slate-200 bg-slate-50/75 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                                        <th class="py-3.5 px-6">NAME</th>
+                                        <th class="py-3.5 px-6">EMAIL</th>
+                                        <th class="py-3.5 px-6">ROLE</th>
+                                        <th class="py-3.5 px-6">STATUS</th>
+                                        <th class="py-3.5 px-6">JOINED</th>
+                                        <th class="py-3.5 px-6 text-right">ACTIONS</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100 text-xs">
+                                    ${filtered.map(m => `
+                                        <tr class="hover:bg-slate-50/50 transition-colors">
+                                            <td class="py-3 px-6 font-semibold text-red-600">${m.name}</td>
+                                            <td class="py-3 px-6 text-slate-600">${m.email}</td>
+                                            <td class="py-3 px-6">
+                                                <span class="bg-slate-100 text-slate-600 text-[10px] px-2 py-0.5 rounded font-medium">${m.role}</span>
+                                            </td>
+                                            <td class="py-3 px-6">
+                                                <span class="${m.status === 'BLOCKED' ? 'text-red-700 bg-red-50 font-bold px-2 py-0.5 rounded text-[10px]' : 'text-slate-700 font-medium'}">${m.status}</span>
+                                            </td>
+                                            <td class="py-3 px-6 text-slate-500">${m.joined}</td>
+                                            <td class="py-3 px-6 text-right">
+                                                <button onclick="viewMember('${m.email}')" class="border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 px-3 py-1 rounded text-xs font-medium shadow-2xs transition-all">View</button>
+                                            </td>
+                                        </tr>
+                                    `).join('')}
+                                    ${filtered.length === 0 ? `<tr><td colspan="6" class="text-center py-8 text-slate-400">No members found</td></tr>` : ''}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            } else if (state.currentView === 'deposit') {
+                container.innerHTML = `
+                    <div class="bg-white border border-slate-200 rounded-xl shadow-xs overflow-hidden p-6">
+                        <h3 class="font-bold text-sm text-slate-900 mb-4">Deposit Management</h3>
+                        <div class="space-y-3">
+                            ${state.deposits.map(d => `
+                                <div class="flex items-center justify-between p-3 border border-slate-100 rounded-lg bg-slate-50 text-xs">
+                                    <div><span class="font-semibold text-slate-900">${d.name}</span> • <span class="text-slate-500">${d.method}</span></div>
+                                    <div class="font-bold text-red-600">${d.amount}</div>
+                                    <span class="bg-amber-100 text-amber-800 px-2 py-0.5 rounded text-[10px] font-medium">${d.status}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            } else if (state.currentView === 'withdrawal') {
+                container.innerHTML = `
+                    <div class="bg-white border border-slate-200 rounded-xl shadow-xs overflow-hidden p-6">
+                        <h3 class="font-bold text-sm text-slate-900 mb-4">Withdrawal Requests</h3>
+                        <div class="space-y-3">
+                            ${state.withdrawals.map(w => `
+                                <div class="flex items-center justify-between p-3 border border-slate-100 rounded-lg bg-slate-50 text-xs">
+                                    <div><span class="font-semibold text-slate-900">${w.name}</span> • <span class="text-slate-500">${w.method}</span></div>
+                                    <div class="font-bold text-slate-900">${w.amount}</div>
+                                    <span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-[10px] font-medium">${w.status}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            } else if (state.currentView === 'logs') {
+                container.innerHTML = `
+                    <div class="bg-white border border-slate-200 rounded-xl shadow-xs overflow-hidden p-6">
+                        <h3 class="font-bold text-sm text-slate-900 mb-4">Transaction Audit Logs</h3>
+                        <div class="space-y-2 text-xs">
+                            ${state.logs.map(l => `
+                                <div class="p-2 border-b border-slate-100 flex justify-between">
+                                    <span class="text-slate-800 font-medium">${l.action}</span>
+                                    <span class="text-slate-400 text-[10px]">${l.time}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function filterMembers(val) {
+            filterQuery = val;
+            renderView();
+        }
+
+        function viewMember(email) {
+            const member = state.members.find(m => m.email === email);
+            if (!member) return;
+            const overlay = document.getElementById('modal-overlay');
+            const content = document.getElementById('modal-content');
+            
+            content.innerHTML = `
+                <div class="p-6 space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                        <h3 class="font-bold text-slate-900 text-sm flex items-center gap-2">
+                            <span>Member Security & IP Inspector</span>
+                        </h3>
+                        <button onclick="closeModal()" class="text-slate-400 hover:text-slate-700">✕</button>
+                    </div>
+                    <div class="space-y-2.5 text-xs">
+                        <div class="flex justify-between border-b border-slate-50 pb-1.5"><strong class="text-slate-500">Name:</strong> <span class="text-slate-900 font-semibold">${member.name}</span></div>
+                        <div class="flex justify-between border-b border-slate-50 pb-1.5"><strong class="text-slate-500">Email:</strong> <span class="text-slate-700">${member.email}</span></div>
+                        <div class="flex justify-between border-b border-slate-50 pb-1.5"><strong class="text-slate-500">Role:</strong> <span class="text-slate-700">${member.role}</span></div>
+                        <div class="flex justify-between border-b border-slate-50 pb-1.5"><strong class="text-slate-500">Status:</strong> <span class="${member.status === 'BLOCKED' ? 'text-red-600 font-bold' : 'text-green-600 font-semibold'}">${member.status}</span></div>
+                        <div class="flex justify-between border-b border-slate-50 pb-1.5"><strong class="text-slate-500">Joined Date:</strong> <span class="text-slate-700">${member.joined}</span></div>
+                        <div class="flex justify-between items-center bg-slate-50 p-2.5 rounded-lg border border-slate-200/60">
+                            <div>
+                                <strong class="text-slate-500 block text-[10px] uppercase">Captured IP Address</strong>
+                                <span class="font-mono font-bold text-slate-900">${member.ip}</span>
+                            </div>
+                            <span class="bg-emerald-100 text-emerald-800 text-[10px] px-2 py-0.5 rounded font-medium">Manila, PH</span>
+                        </div>
+                    </div>
+                    
+                    <div id="ai-member-insights" class="bg-slate-50 border border-slate-200 rounded-lg p-3 text-xs space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="font-semibold text-slate-900 flex items-center gap-1.5"><i data-lucide="sparkles" class="w-3.5 h-3.5 text-red-600"></i> AI Risk & Engagement Profile</span>
+                            <button onclick="generateMemberAiProfile('${member.name}', '${member.email}', '${member.joined}')" class="bg-red-600 hover:bg-red-700 text-white px-2.5 py-1 rounded font-medium text-[10px]">Run Analysis</button>
+                        </div>
+                        <p class="text-slate-500 italic">Click 'Run Analysis' to generate AI risk assessment using Gemini.</p>
+                    </div>
+
+                    <div class="flex items-center justify-between pt-3 border-t border-slate-100">
+                        ${member.status !== 'BLOCKED' ? `
+                            <button onclick="blockMemberIp('${member.email}', '${member.ip}')" class="bg-red-600 hover:bg-red-700 text-white px-3.5 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-all">
+                                <i data-lucide="shield-alert" class="w-3.5 h-3.5"></i>
+                                <span>Block IP (${member.ip})</span>
+                            </button>
+                        ` : `
+                            <button onclick="unblockMemberIp('${member.email}')" class="bg-slate-800 hover:bg-slate-900 text-white px-3.5 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-all">
+                                <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
+                                <span>Unblock IP</span>
+                            </button>
+                        `}
+                        <button onclick="closeModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-lg text-xs font-medium">Close</button>
+                    </div>
+                </div>
+            `;
+            overlay.classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        async function generateMemberAiProfile(name, email, joined) {
+            const container = document.getElementById('ai-member-insights');
+            container.innerHTML = `
+                <div class="flex items-center gap-2 text-slate-500 animate-pulse py-2">
+                    <i data-lucide="loader-2" class="w-4 h-4 animate-spin text-red-600"></i>
+                    <span>Running Gemini AI behavioral analysis for ${name}...</span>
+                </div>
+            `;
+
+            const prompt = `Analyze member account for Lulu Philippines:
+            Name: ${name}
+            Email: ${email}
+            Joined: ${joined}
+            Provide a short risk score (Low/Medium/High), predicted activity level, and recommended retention action in 3 bullet points.`;
+
+            const aiText = await callGeminiAPI(prompt);
+            container.innerHTML = `
+                <div class="space-y-1">
+                    <div class="font-semibold text-slate-900 flex items-center gap-1.5"><i data-lucide="sparkles" class="w-3.5 h-3.5 text-red-600"></i> Gemini AI Analysis</div>
+                    <p class="text-slate-700 whitespace-pre-line">${aiText}</p>
+                </div>
+            `;
+            lucide.createIcons();
+        }
+
+        function blockMemberIp(email, ip) {
+            const member = state.members.find(m => m.email === email);
+            if (member) {
+                member.status = 'BLOCKED';
+                state.logs.unshift({
+                    id: 'LOG-' + Math.floor(Math.random() * 900 + 100),
+                    admin: 'Admin User',
+                    action: `Blocked IP address ${ip} for member ${member.name} (${email})`,
+                    time: new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                });
+                showToast(`Successfully blocked IP ${ip} and restricted member access.`, 'error');
+                closeModal();
+                renderView();
+            }
+        }
+
+        function unblockMemberIp(email) {
+            const member = state.members.find(m => m.email === email);
+            if (member) {
+                member.status = 'ACTIVE';
+                state.logs.unshift({
+                    id: 'LOG-' + Math.floor(Math.random() * 900 + 100),
+                    admin: 'Admin User',
+                    action: `Unblocked IP address ${member.ip} for member ${member.name} (${email})`,
+                    time: new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                });
+                showToast(`Successfully unblocked IP for ${member.name}.`, 'success');
+                closeModal();
+                renderView();
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('modal-overlay').classList.add('hidden');
+        }
+
+        // Initialize on load
+        window.onload = function() {
+            renderView();
+            lucide.createIcons();
+            
+            // Check if API key is set when published on GitHub
+            if (!localStorage.getItem('gemini_api_key')) {
+                setTimeout(() => {
+                    openApiKeyModal();
+                }, 1000);
+            }
+        };
+    </script>
+</body>
+</html>
